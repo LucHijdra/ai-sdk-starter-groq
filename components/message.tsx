@@ -3,20 +3,14 @@
 import type { Message as TMessage } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useState } from "react";
-import equal from "fast-deep-equal";
 import Image from "next/image";
 
 import { Markdown } from "./markdown";
 import { cn } from "@/lib/utils";
 import { TypingIndicator } from "./typing-indicator";
 import {
-  CheckCircle,
   ChevronDownIcon,
   ChevronUpIcon,
-  Loader2,
-  PocketKnife,
-  SparklesIcon,
-  StopCircle,
 } from "lucide-react";
 import { SpinnerIcon } from "./icons";
 
@@ -119,12 +113,10 @@ export function ReasoningMessagePart({
 
 const Message = memo(function Message({
   message,
-  isLoading,
   isLatestMessage,
   status,
 }: {
   message: TMessage;
-  isLoading: boolean;
   isLatestMessage: boolean;
   status: "error" | "submitted" | "streaming" | "ready";
 }) {
