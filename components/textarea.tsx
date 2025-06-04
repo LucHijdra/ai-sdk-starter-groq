@@ -1,7 +1,5 @@
-import { modelID } from "@/ai/providers";
 import { Textarea as ShadcnTextarea } from "@/components/ui/textarea";
 import { ArrowUp } from "lucide-react";
-import { ModelPicker } from "./model-picker";
 
 interface InputProps {
   input: string;
@@ -9,8 +7,6 @@ interface InputProps {
   isLoading: boolean;
   status: string;
   stop: () => void;
-  selectedModel: modelID;
-  setSelectedModel: (model: modelID) => void;
 }
 
 export const Textarea = ({
@@ -19,8 +15,6 @@ export const Textarea = ({
   isLoading,
   status,
   stop,
-  selectedModel,
-  setSelectedModel,
 }: InputProps) => {
   return (
     <div className="relative w-full pt-4">
@@ -28,7 +22,7 @@ export const Textarea = ({
         className="resize-none bg-secondary w-full rounded-2xl pr-12 pt-4 pb-16"
         value={input}
         autoFocus
-        placeholder={"Say something..."}
+        placeholder={"Vraag Roul Ette iets..."}
         // @ts-expect-error err
         onChange={handleInputChange}
         onKeyDown={(e) => {
@@ -41,10 +35,6 @@ export const Textarea = ({
             }
           }
         }}
-      />
-      <ModelPicker
-        setSelectedModel={setSelectedModel}
-        selectedModel={selectedModel}
       />
 
       {status === "streaming" || status === "submitted" ? (

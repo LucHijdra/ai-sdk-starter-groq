@@ -1,8 +1,7 @@
 "use client";
 
-import { defaultModel, modelID } from "@/ai/providers";
+import { defaultModel } from "@/ai/providers";
 import { useChat } from "@ai-sdk/react";
-import { useState } from "react";
 import { Textarea } from "./textarea";
 import { ProjectOverview } from "./project-overview";
 import { Messages } from "./messages";
@@ -10,12 +9,11 @@ import { Header } from "./header";
 import { toast } from "sonner";
 
 export default function Chat() {
-  const [selectedModel, setSelectedModel] = useState<modelID>(defaultModel);
   const { messages, input, handleInputChange, handleSubmit, status, stop } =
     useChat({
       maxSteps: 5,
       body: {
-        selectedModel,
+        selectedModel: defaultModel,
       },
       onError: (error) => {
         toast.error(
@@ -44,8 +42,6 @@ export default function Chat() {
         className="pb-8 bg-white dark:bg-black w-full max-w-xl mx-auto px-4 sm:px-0"
       >
         <Textarea
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
           handleInputChange={handleInputChange}
           input={input}
           isLoading={isLoading}
