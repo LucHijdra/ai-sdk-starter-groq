@@ -4,9 +4,11 @@ import type { Message as TMessage } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useState } from "react";
 import equal from "fast-deep-equal";
+import Image from "next/image";
 
 import { Markdown } from "./markdown";
 import { cn } from "@/lib/utils";
+import { TypingIndicator } from "./typing-indicator";
 import {
   CheckCircle,
   ChevronDownIcon,
@@ -115,127 +117,68 @@ export function ReasoningMessagePart({
   );
 }
 
-const PurePreviewMessage = ({
+const Message = memo(function Message({
   message,
+  isLoading,
   isLatestMessage,
   status,
 }: {
   message: TMessage;
   isLoading: boolean;
-  status: "error" | "submitted" | "streaming" | "ready";
   isLatestMessage: boolean;
-}) => {
+  status: "error" | "submitted" | "streaming" | "ready";
+}) {
+  const [displayedMessage, setDisplayedMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const isAssistant = message.role === "assistant";
+
+  useEffect(() => {
+    if (isAssistant && isLatestMessage && status === "streaming") {
+      setIsTyping(true);
+      const timer = setTimeout(() => {
+        setIsTyping(false);
+        setDisplayedMessage(message.content);
+      }, 4000); // 4 second typing delay
+      return () => clearTimeout(timer);
+    } else {
+      setDisplayedMessage(message.content);
+      setIsTyping(false);
+    }
+  }, [message.content, isAssistant, isLatestMessage, status]);
+
+  const renderContent = () => {
+    if (isTyping && isAssistant) {
+      return <TypingIndicator />;
+    }
+    return <Markdown>{displayedMessage}</Markdown>;
+  };
+
   return (
-    <AnimatePresence key={message.id}>
-      <motion.div
-        className="w-full mx-auto px-4 group/message"
-        initial={{ y: 5, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        key={`message-${message.id}`}
-        data-role={message.role}
-      >
-        <div
-          className={cn(
-            "flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl",
-            "group-data-[role=user]/message:w-fit",
-          )}
-        >
-          {message.role === "assistant" && (
-            <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
-              <div className="">
-                <SparklesIcon size={14} />
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col w-full space-y-4">
-            {message.parts?.map((part, i) => {
-              switch (part.type) {
-                case "text":
-                  return (
-                    <motion.div
-                      initial={{ y: 5, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      key={`message-${message.id}-part-${i}`}
-                      className="flex flex-row gap-2 items-start w-full pb-4"
-                    >
-                      <div
-                        className={cn("flex flex-col gap-4", {
-                          "bg-secondary text-secondary-foreground px-3 py-2 rounded-tl-xl rounded-tr-xl rounded-bl-xl":
-                            message.role === "user",
-                        })}
-                      >
-                        <Markdown>{part.text}</Markdown>
-                      </div>
-                    </motion.div>
-                  );
-                case "tool-invocation":
-                  const { toolName, state } = part.toolInvocation;
-
-                  return (
-                    <motion.div
-                      initial={{ y: 5, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      key={`message-${message.id}-part-${i}`}
-                      className="flex flex-col gap-2 p-2 mb-3 text-sm bg-zinc-50 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800"
-                    >
-                      <div className="flex-1 flex items-center justify-center">
-                        <div className="flex items-center justify-center w-8 h-8 bg-zinc-50 dark:bg-zinc-800 rounded-full">
-                          <PocketKnife className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium flex items-baseline gap-2">
-                            {state === "call" ? "Calling" : "Called"}{" "}
-                            <span className="font-mono bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                              {toolName}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-5 h-5 flex items-center justify-center">
-                          {state === "call" ? (
-                            isLatestMessage && status !== "ready" ? (
-                              <Loader2 className="animate-spin h-4 w-4 text-zinc-500" />
-                            ) : (
-                              <StopCircle className="h-4 w-4 text-red-500" />
-                            )
-                          ) : state === "result" ? (
-                            <CheckCircle size={14} className="text-green-600" />
-                          ) : null}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                case "reasoning":
-                  return (
-                    <ReasoningMessagePart
-                      key={`message-${message.id}-${i}`}
-                      // @ts-expect-error part
-                      part={part}
-                      isReasoning={
-                        (message.parts &&
-                          status === "streaming" &&
-                          i === message.parts.length - 1) ??
-                        false
-                      }
-                    />
-                  );
-                default:
-                  return null;
-              }
-            })}
+    <div
+      className={cn(
+        "w-full text-gray-800 dark:text-gray-100 flex flex-col space-y-2 py-4",
+        isAssistant && "bg-secondary/30"
+      )}
+    >
+      <div className="max-w-xl w-full mx-auto flex space-x-4">
+        {isAssistant ? (
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
+            <Image
+              src="/Casinocroupier in zwart vest  jonge man met snor, klassieke casinolook.jpeg"
+              alt="Roul Ette profiel"
+              fill
+              className="object-cover"
+            />
           </div>
-        </div>
-      </motion.div>
-    </AnimatePresence>
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gray-600 flex-shrink-0" />
+        )}
+        <div className="flex-1 space-y-2">{renderContent()}</div>
+      </div>
+    </div>
   );
-};
-
-export const Message = memo(PurePreviewMessage, (prevProps, nextProps) => {
-  if (prevProps.status !== nextProps.status) return false;
-  if (prevProps.message.annotations !== nextProps.message.annotations)
-    return false;
-  // if (prevProps.message.content !== nextProps.message.content) return false;
-  if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
-
-  return true;
 });
+
+Message.displayName = "Message";
+
+export { Message, type ReasoningPart };
